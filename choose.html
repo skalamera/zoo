@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
       font-style: normal;
       font-display: swap;
     }
+
     :root {
       --bg1: #173d1a;
       --bg2: #265d28;
@@ -21,26 +23,113 @@
       --accent: #ffcc80;
       --sun: #ffd54f;
     }
-    html, body { height: 100%; margin: 0; }
-    body { background: linear-gradient(180deg, var(--bg1), var(--bg2)); color: #fff; font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; display: grid; place-items: center; padding: 20px; }
-    .wrap { width: min(720px, 100%); display: grid; gap: 18px; text-align: center; }
-    h1 { font-family: 'GILGON', 'Rye', cursive; font-size: clamp(26px, 6vw, 48px); margin: 0; letter-spacing: 1px; }
-    p { margin: 0; opacity: .9; line-height: 1.5; font-size: clamp(14px, 3.5vw, 18px); }
-    .cards { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 680px) { .cards { grid-template-columns: 1fr 1fr; } }
-    .card { background: var(--panel); border: 2px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 12px 28px rgba(0,0,0,0.35); cursor: pointer; user-select: none; }
-    .card.selected { outline: 3px solid var(--sun); background: rgba(255,213,79,0.12); }
-    .title { font-size: clamp(18px, 4.5vw, 22px); font-family: 'GILGON', 'Rye', cursive; }
-    .sub { font-size: clamp(13px, 3.5vw, 16px); opacity: .95; }
-    .go { margin-top: 8px; background: linear-gradient(135deg, #2e7d32, #aeea00); color: #0d1f0d; border: none; border-radius: 14px; padding: 12px 16px; font-size: 16px; box-shadow: 0 10px 20px rgba(0,0,0,.35); cursor: pointer; font-family: 'Jua', sans-serif; }
-    .go:active { transform: translateY(1px); }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: linear-gradient(180deg, var(--bg1), var(--bg2));
+      color: #fff;
+      font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .wrap {
+      width: min(720px, 100%);
+      display: grid;
+      gap: 18px;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'GILGON', 'Rye', cursive;
+      font-size: clamp(26px, 6vw, 48px);
+      margin: 0;
+      letter-spacing: 1px;
+    }
+
+    p {
+      margin: 0;
+      opacity: .9;
+      line-height: 1.5;
+      font-size: clamp(14px, 3.5vw, 18px);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 680px) {
+      .cards {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card.selected {
+      outline: 3px solid var(--sun);
+      background: rgba(255, 213, 79, 0.12);
+    }
+
+    .title {
+      font-size: clamp(18px, 4.5vw, 22px);
+      font-family: 'GILGON', 'Rye', cursive;
+    }
+
+    .sub {
+      font-size: clamp(13px, 3.5vw, 16px);
+      opacity: .95;
+    }
+
+    .go {
+      margin-top: 8px;
+      background: linear-gradient(135deg, #2e7d32, #aeea00);
+      color: #0d1f0d;
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 16px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .35);
+      cursor: pointer;
+      font-family: 'Jua', sans-serif;
+    }
+
+    .go:active {
+      transform: translateY(1px);
+    }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <h1>Specimen Briefing</h1>
     <p>Welcome, keen observer. Today we study <strong>wild humans</strong> in their native habitat.
       Approach with curiosity.</p>
+
+    <div class="card" style="background: rgba(255,193,7,0.15); border: 2px solid rgba(255,193,7,0.4); margin: 8px 0;">
+      <div style="font-size: clamp(16px, 4vw, 20px); margin-bottom: 8px; font-family: 'GILGON', 'Rye', cursive;">🎯 Mission Brief</div>
+      <div style="font-size: clamp(14px, 3.5vw, 16px); line-height: 1.4;">
+        Your assignment: Locate a <strong>wild human</strong> using your observation device (camera). 
+        Study their curious behaviors, peculiar fashion choices, and natural reactions when they realize they're being watched. 
+        Remember: These fascinating creatures are easily startled by sudden movements, so maintain a respectful distance while documenting their daily rituals.
+      </div>
+    </div>
 
     <div class="cards" id="cards">
       <div class="card" data-persona="attenborough">
@@ -81,6 +170,5 @@
     render()
   </script>
 </body>
+
 </html>
-
-
