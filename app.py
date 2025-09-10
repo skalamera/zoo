@@ -37,13 +37,21 @@ def narrate():
     data = request.json
     if not data or 'image' not in data:
         return jsonify({"error": "No image data received"}), 400
+    history_text = data.get('history', '') or ''
 
     # 1. Extract and decode the image
     image_data_url = data['image']
     header, encoded_data = image_data_url.split(',', 1)
     
     # 2. Call the AI model API (Gemini)
-    prompt_text = "Describe this scene as if you are Sir David Attenborough from a nature documentary like Planet Earth. Focus on the human and their surroundings as you would for a wild animal. Keep the narration brief and impactful."
+    prompt_text = (
+        "You are narrating a continuous wildlife documentary in the style of Sir David Attenborough. "
+        "Build upon the previous narration without repeating earlier lines. "
+        "If nothing substantially new is visible, say something brief acknowledging continuity. "
+        "Reply with 1-2 concise sentences.\n\n"
+        f"Previous narration so far:\n{history_text}\n\n"
+        "Now continue with the next line based on the current image."
+    )
     
     headers = { "Content-Type": "application/json" }
     payload = {
@@ -84,9 +92,8 @@ def narrate():
     try:
         tts_response = requests.post(AZURE_SPEECH_URL, headers=tts_headers, data=ssml.encode('utf-8'))
         tts_response.raise_for_status()
-        
-        # Stream the audio response back to the client
-        return send_file(io.BytesIO(tts_response.content), mimetype="audio/mpeg", as_attachment=False)
+        audio_b64 = base64.b64encode(tts_response.content).decode('ascii')
+        return jsonify({"text": narration_text, "audio": audio_b64})
     except requests.exceptions.RequestException as e:
         print(f"Error calling Azure TTS API: {e}")
         return jsonify({"error": "Failed to generate audio from Azure"}), 500

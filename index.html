@@ -62,6 +62,9 @@
 
         let intervalId = null;
         let streamRef = null;
+        let isInFlight = false;
+        let isSpeaking = false;
+        let narrationHistory = '';
 
         async function startCamera() {
             try {
@@ -76,24 +79,25 @@
         }
 
         function captureAndSendFrame() {
+            if (isInFlight || isSpeaking) return;
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 quality for smaller size
 
+            isInFlight = true;
             fetch('/narrate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: dataUrl })
+                body: JSON.stringify({ image: dataUrl, history: narrationHistory })
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.blob();
-                })
-                .then(blob => {
-                    const audioUrl = URL.createObjectURL(blob);
+                .then(async response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const data = await response.json();
+                    if (!data.audio || !data.text) throw new Error('Malformed response');
+                    narrationHistory += (narrationHistory ? '\n' : '') + data.text;
+                    const audioUrl = URL.createObjectURL(b64ToBlob(data.audio, 'audio/mpeg'));
                     audioPlayer.src = audioUrl;
-                    audioPlayer.play();
+                    isSpeaking = true;
+                    await audioPlayer.play();
                     statusElement.textContent = "Narration playing...";
                 })
                 .catch(async error => {
@@ -105,6 +109,9 @@
                         console.error('Health check error', e);
                     }
                     statusElement.textContent = "Narration failed. Check API keys or rate limiting.";
+                })
+                .finally(() => {
+                    isInFlight = false;
                 });
         }
 
@@ -140,8 +147,27 @@
                 streamRef = null;
             }
             video.srcObject = null;
+            narrationHistory = '';
             statusElement.textContent = "Camera and narration stopped.";
         });
+
+        audioPlayer.addEventListener('ended', () => {
+            isSpeaking = false;
+        });
+
+        function b64ToBlob(b64Data, contentType) {
+            const byteCharacters = atob(b64Data);
+            const byteArrays = [];
+            const sliceSize = 1024;
+            for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                const slice = byteCharacters.slice(offset, offset + sliceSize);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) byteNumbers[i] = slice.charCodeAt(i);
+                const byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+            return new Blob(byteArrays, { type: contentType });
+        }
 
     </script>
 </body>
