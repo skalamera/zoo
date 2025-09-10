@@ -25,6 +25,10 @@ AZURE_SPEECH_URL = (
     f"https://{AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1"
 )
 
+@app.get('/')
+def root():
+    return send_file('index.html')
+
 @app.route('/narrate', methods=['POST'])
 def narrate():
     # Validate configuration
