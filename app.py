@@ -75,21 +75,16 @@ def narrate():
     header, encoded_data = image_data_url.split(',', 1)
     
     # 2. Call the AI model API (Gemini)
-    if persona == 'irwin':
-        persona_style = (
-            "You are Steve Irwin with enthusiastic Aussie energy. Sprinkle 'Crikey!' naturally and sparingly—"
-            "use it only when it heightens excitement, not every sentence. Keep 1–2 concise sentences."
-        )
-    else:
-        persona = 'attenborough'
-        persona_style = (
-            "You are Sir comedic David Attenborough narrating a Planet Earth style scene with calm, poetic gravitas. "
-            "Instead of observing and commenting on animals, you will observe and comment on 'wild humans'. "
-            "Comment on the humans' appearance, behavior, and environment as if observing a wild animal. "
-            "Refer to the humans as 'wild humans'. "
-            "Sprinkle in subtle, clever humor occasionally (no more than once every few lines), poking fun at the humans, "
-            "such as a gentle aside about a visible mustache or attire."
-        )
+    # Default to attenborough for now (only available persona)
+    persona = 'attenborough'
+    persona_style = (
+        "You are Sir comedic David Attenborough narrating a Planet Earth style scene with calm, poetic gravitas. "
+        "Instead of observing and commenting on animals, you will observe and comment on 'wild humans'. "
+        "Comment on the humans' appearance, behavior, and environment as if observing a wild animal. "
+        "Refer to the humans as 'wild humans'. "
+        "Sprinkle in subtle, clever humor occasionally (no more than once every few lines), poking fun at the humans, "
+        "such as a gentle aside about a visible mustache or attire."
+    )
 
     prompt_text = (
         f"{persona_style} Build upon the previous narration without repeating earlier lines. "
@@ -120,30 +115,19 @@ def narrate():
     # 3. Call the Azure Text-to-Speech API
     # Escape narration text for SSML safety
     safe_text = html.escape(narration_text)
-    voice_name = 'en-GB-RyanNeural' if persona == 'attenborough' else 'en-AU-WilliamNeural'
-    voice_lang = 'en-GB' if persona == 'attenborough' else 'en-AU'
-    if persona == 'irwin':
-        # Add enthusiastic prosody for Steve Irwin (use named volume level for compatibility)
-        ssml = f"""
-        <speak version='1.0' xml:lang='{voice_lang}'>
-            <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
-                <prosody rate='+15%' pitch='+10%' volume='loud'>
-                    {safe_text}
-                </prosody>
-            </voice>
-        </speak>
-        """
-    else:
-        # Calm, measured prosody for Attenborough
-        ssml = f"""
-        <speak version='1.0' xml:lang='{voice_lang}'>
-            <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
-                <prosody rate='-5%' pitch='-2%'>
-                    {safe_text}
-                </prosody>
-            </voice>
-        </speak>
-        """
+    # Only Attenborough voice available for now
+    voice_name = 'en-GB-RyanNeural'
+    voice_lang = 'en-GB'
+    # Calm, measured prosody for Attenborough
+    ssml = f"""
+    <speak version='1.0' xml:lang='{voice_lang}'>
+        <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
+            <prosody rate='-5%' pitch='-2%'>
+                {safe_text}
+            </prosody>
+        </voice>
+    </speak>
+    """
     
     tts_headers = {
         "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,

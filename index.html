@@ -119,13 +119,13 @@
                 <label for="persona-select">Narration persona:</label>
                 <select id="persona-select">
                     <option value="attenborough">Planet Earth — Sir David Attenborough</option>
-                    <option value="irwin">Steve Irwin</option>
                 </select>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button id="camera-button" class="btn btn-start">Start Camera & Narration</button>
                 <button id="stop-button" class="btn btn-stop">Stop Camera & Narration</button>
-                <button id="flip-button" class="btn" style="background: linear-gradient(135deg, #424242, #757575);">📱 Flip Camera</button>
+                <button id="flip-button" class="btn" style="background: linear-gradient(135deg, #424242, #757575);">📱
+                    Flip Camera</button>
             </div>
         </div>
 
@@ -161,8 +161,8 @@
 
         async function startCamera() {
             try {
-                streamRef = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: facingMode } 
+                streamRef = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
                 });
                 video.srcObject = streamRef;
                 statusElement.textContent = "Camera active. Starting narration...";
@@ -178,17 +178,17 @@
                 statusElement.textContent = "Start camera first before flipping.";
                 return;
             }
-            
+
             // Stop current stream
             streamRef.getTracks().forEach(track => track.stop());
-            
+
             // Toggle facing mode
             facingMode = facingMode === 'user' ? 'environment' : 'user';
-            
+
             // Restart with new facing mode
             try {
-                streamRef = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: facingMode } 
+                streamRef = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: facingMode }
                 });
                 video.srcObject = streamRef;
                 statusElement.textContent = `Switched to ${facingMode === 'user' ? 'front' : 'back'} camera.`;
