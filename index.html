@@ -4,17 +4,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sir David's Narrator</title>
+    <title>Field Observation Cam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'GILGON';
+            src: url('GILGONT_.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        :root {
+            --bg1: #173d1a;
+            --bg2: #265d28;
+            --panel: rgba(255, 255, 255, .08);
+            --border: rgba(255, 255, 255, .2);
+        }
+
         body {
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
-            background-color: #f0f0f0;
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--bg1), var(--bg2));
+            color: #fff;
+            display: grid;
+            place-items: center;
+            padding: 16px;
+        }
+
+        .wrap {
+            width: min(960px, 100%);
+            display: grid;
+            gap: 14px;
+        }
+
+        .title {
+            font-family: 'GILGON', 'Rye', cursive;
+            font-size: clamp(22px, 6.5vw, 40px);
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, .35);
+        }
+
+        /* Jungle-styled controls */
+        #persona-select {
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .25);
+            color: #fff;
+            border: 2px solid var(--border);
+            padding: 8px 12px;
+            outline: none;
+        }
+
+        .btn {
+            border-radius: 14px;
+            border: none;
+            padding: 10px 16px;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, .35);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #2e7d32, #aeea00);
+            color: #0d1f0d;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #8d3a22, #ff7043);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
         }
 
         #video-container {
@@ -25,7 +94,7 @@
         #narrator-status {
             margin-top: 20px;
             font-size: 1.2em;
-            color: #555;
+            color: #ffeb3b;
         }
 
         #camera-button {
@@ -42,22 +111,32 @@
 
 <body>
 
-    <div style="margin-bottom:12px; display:flex; gap:10px; align-items:center;">
-        <label for="persona-select">Narration persona:</label>
-        <select id="persona-select">
-            <option value="attenborough" selected>Planet Earth — Sir David Attenborough</option>
-            <option value="irwin">Steve Irwin</option>
-        </select>
-    </div>
+    <div class="wrap">
+        <div class="title">Field Observation Cam</div>
+        <div class="panel"
+            style="display:flex; gap:8px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+            <div>
+                <label for="persona-select">Narration persona:</label>
+                <select id="persona-select">
+                    <option value="attenborough">Planet Earth — Sir David Attenborough</option>
+                    <option value="irwin">Steve Irwin</option>
+                </select>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button id="camera-button" class="btn btn-start">Start Camera & Narration</button>
+                <button id="stop-button" class="btn btn-stop">Stop Camera & Narration</button>
+            </div>
+        </div>
 
-    <video id="videoElement" width="640" height="480" autoplay></video>
-    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
-    <h2 id="narrator-status">Waiting to start...</h2>
-    <div style="margin-top:12px; display:flex; gap:10px;">
-        <button id="camera-button">Start Camera & Narration</button>
-        <button id="stop-button">Stop Camera & Narration</button>
+        <div class="panel" style="display:grid; place-items:center;">
+            <video id="videoElement" width="640" height="480" autoplay
+                style="max-width:100%; height:auto; border-radius:10px;"></video>
+            <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+        </div>
+
+        <h2 id="narrator-status" style="text-align:center;">Waiting to start...</h2>
+        <audio id="audioPlayer" controls style="display:none;"></audio>
     </div>
-    <audio id="audioPlayer" controls style="display: none;"></audio>
 
     <script>
         const video = document.getElementById('videoElement');
@@ -74,7 +153,8 @@
         let isInFlight = false;
         let isSpeaking = false;
         let narrationHistory = '';
-        let selectedPersona = personaSelect.value;
+        let selectedPersona = localStorage.getItem('narration_persona') || 'attenborough';
+        personaSelect.value = selectedPersona;
 
         async function startCamera() {
             try {
@@ -163,6 +243,7 @@
 
         personaSelect.addEventListener('change', () => {
             selectedPersona = personaSelect.value;
+            localStorage.setItem('narration_persona', selectedPersona);
             narrationHistory = '';
             statusElement.textContent = "Persona changed. Context cleared.";
         });

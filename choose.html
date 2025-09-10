@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choose Your Narrator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --jungle1: #1b5e20; --jungle2: #33691e; --accent: #ffcc80; --sun: #ffd54f;
+    }
+    html, body { height: 100%; margin: 0; }
+    body { background: linear-gradient(160deg, var(--jungle1), var(--jungle2)); color: #fff; font-family: 'Jua', sans-serif; display: grid; place-items: center; padding: 20px; }
+    .wrap { width: min(720px, 100%); display: grid; gap: 18px; text-align: center; }
+    h1 { font-family: 'Rye', cursive; font-size: clamp(26px, 6vw, 48px); margin: 0; }
+    p { margin: 0; opacity: .9; line-height: 1.5; font-size: clamp(14px, 3.5vw, 18px); }
+    .cards { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 680px) { .cards { grid-template-columns: 1fr 1fr; } }
+    .card { background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 16px; box-shadow: 0 10px 24px rgba(0,0,0,0.35); cursor: pointer; user-select: none; }
+    .card.selected { outline: 3px solid var(--sun); background: rgba(255,213,79,0.12); }
+    .title { font-size: clamp(18px, 4.5vw, 22px); }
+    .sub { font-size: clamp(13px, 3.5vw, 16px); opacity: .95; }
+    .go { margin-top: 8px; background: radial-gradient(circle at 30% 30%, var(--sun), var(--accent)); color: #3d2e06; border: none; border-radius: 14px; padding: 12px 16px; font-size: 16px; box-shadow: 0 10px 22px rgba(0,0,0,.35); cursor: pointer; }
+    .go:active { transform: translateY(1px); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Specimen Briefing</h1>
+    <p>Welcome, keen observer. Today we study <strong>wild humans</strong> in their native habitat.
+      Approach with curiosity; a tasteful joke about a splendid moustache is permitted.</p>
+
+    <div class="cards" id="cards">
+      <div class="card" data-persona="attenborough">
+        <div class="title">Sir David Attenborough</div>
+        <div class="sub">Calm gravitas with gentle, witty asides.</div>
+      </div>
+      <div class="card" data-persona="irwin">
+        <div class="title">Steve Irwin</div>
+        <div class="sub">Enthusiastic Aussie energy—excitement, but respectful.</div>
+      </div>
+    </div>
+
+    <button class="go" id="continue">Continue to Field Observation</button>
+  </div>
+
+  <script>
+    const cards = document.getElementById('cards')
+    const btn = document.getElementById('continue')
+    let selected = localStorage.getItem('narration_persona') || 'attenborough'
+
+    function render() {
+      for (const c of cards.children) {
+        c.classList.toggle('selected', c.dataset.persona === selected)
+      }
+    }
+    cards.addEventListener('click', (e) => {
+      const card = e.target.closest('.card')
+      if (!card) return
+      selected = card.dataset.persona
+      localStorage.setItem('narration_persona', selected)
+      render()
+    })
+    btn.addEventListener('click', () => {
+      if (!selected) selected = 'attenborough'
+      localStorage.setItem('narration_persona', selected)
+      window.location.href = '/experience'
+    })
+    render()
+  </script>
+</body>
+</html>
+
+

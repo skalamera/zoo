@@ -28,6 +28,14 @@ AZURE_SPEECH_URL = (
 
 @app.get('/')
 def root():
+    return send_file('landing.html')
+
+@app.get('/choose')
+def choose():
+    return send_file('choose.html')
+
+@app.get('/experience')
+def experience():
     return send_file('index.html')
 
 @app.route('/favicon.ico')

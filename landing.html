@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoo Cam – Enter the Wild</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --overlay: rgba(0, 0, 0, 0.35);
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: var(--overlay) center/cover no-repeat fixed;
+            display: grid;
+            grid-template-rows: 1fr;
+        }
+
+        .bg {
+            position: fixed;
+            inset: 0;
+            background: url('background_mobile.svg') center/cover no-repeat;
+        }
+
+        @media (min-width: 768px) {
+            .bg {
+                background-image: url('background_desktop.svg');
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+        }
+
+        a.full {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            place-items: center;
+            text-decoration: none;
+            color: #fff;
+            padding: 24px;
+        }
+
+        .title {
+            font-family: 'Rye', cursive;
+            font-size: clamp(28px, 7vw, 64px);
+            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+            letter-spacing: 1px;
+            text-align: center;
+        }
+
+        .cta {
+            margin-top: 16px;
+            font-size: clamp(16px, 3.5vw, 22px);
+            background: linear-gradient(135deg, #2e7d32, #c0ca33);
+            color: #102a09;
+            padding: 12px 18px;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+        }
+    </style>
+    <meta name="theme-color" content="#1b5e20">
+    <link rel="icon" href="data:,">
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Default persona
+            if (!localStorage.getItem('narration_persona')) {
+                localStorage.setItem('narration_persona', 'attenborough');
+            }
+        });
+    </script>
+    <meta name="description" content="Observe wild humans in their natural habitats. Enter the jungle cam experience.">
+    <div class="bg" aria-hidden="true"></div>
+    <div class="overlay" aria-hidden="true"></div>
+</head>
+
+<body>
+    <a class="full" href="/choose" aria-label="Enter experience"></a>
+</body>
+
+</html>
