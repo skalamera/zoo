@@ -48,8 +48,8 @@ def narrate():
     # 2. Call the AI model API (Gemini)
     if persona == 'irwin':
         persona_style = (
-            "You are Steve Irwin with enthusiastic Aussie energy. Start EACH sentence with 'Crikey!' "
-            "Keep it friendly, excited, and concise (1–2 sentences)."
+            "You are Steve Irwin with enthusiastic Aussie energy. Sprinkle 'Crikey!' naturally and sparingly—"
+            "use it only when it heightens excitement, not every sentence. Keep 1–2 concise sentences."
         )
     else:
         persona = 'attenborough'
@@ -79,17 +79,6 @@ def narrate():
         ai_response = requests.post(GEMINI_API_URL, headers=headers, json=payload)
         ai_response.raise_for_status() # Raise an error for bad status codes
         narration_text = ai_response.json()['candidates'][0]['content']['parts'][0]['text']
-        if persona == 'irwin':
-            # Enforce 'Crikey!' at the start of each sentence
-            sentences = re.split(r"(?<=[.!?])\s+", narration_text.strip())
-            sentences = [s for s in sentences if s]
-            crikey_sentences = []
-            for s in sentences:
-                s_stripped = s.lstrip()
-                if not s_stripped.lower().startswith('crikey!'):
-                    s_stripped = f"Crikey! {s_stripped}"
-                crikey_sentences.append(s_stripped)
-            narration_text = ' '.join(crikey_sentences)
     except requests.exceptions.RequestException as e:
         print(f"Error calling AI API: {e}")
         return jsonify({"error": "Failed to get AI response"}), 500
