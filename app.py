@@ -41,15 +41,15 @@ def experience():
 # Serve root-level assets (SVGs, fonts) so they load on Heroku
 @app.get('/background_mobile.svg')
 def asset_bg_mobile():
-    return send_file('background_mobile.svg')
+    return send_file('static/background_mobile.svg')
 
 @app.get('/background_desktop.svg')
 def asset_bg_desktop():
-    return send_file('background_desktop.svg')
+    return send_file('static/background_desktop.svg')
 
 @app.get('/GILGONT_.ttf')
 def asset_font_gilgon():
-    return send_file('GILGONT_.ttf')
+    return send_file('static/GILGONT_.ttf')
 
 @app.route('/favicon.ico')
 def favicon():
