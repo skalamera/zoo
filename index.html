@@ -45,7 +45,10 @@
     <video id="videoElement" width="640" height="480" autoplay></video>
     <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
     <h2 id="narrator-status">Waiting to start...</h2>
-    <button id="camera-button">Start Camera & Narration</button>
+    <div style="margin-top:12px; display:flex; gap:10px;">
+        <button id="camera-button">Start Camera & Narration</button>
+        <button id="stop-button">Stop Camera & Narration</button>
+    </div>
     <audio id="audioPlayer" controls style="display: none;"></audio>
 
     <script>
@@ -55,13 +58,15 @@
         const statusElement = document.getElementById('narrator-status');
         const startButton = document.getElementById('camera-button');
         const audioPlayer = document.getElementById('audioPlayer');
+        const stopButton = document.getElementById('stop-button');
 
         let intervalId = null;
+        let streamRef = null;
 
         async function startCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                video.srcObject = stream;
+                streamRef = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = streamRef;
                 statusElement.textContent = "Camera active. Starting narration...";
                 startNarrationLoop();
             } catch (err) {
@@ -91,9 +96,15 @@
                     audioPlayer.play();
                     statusElement.textContent = "Narration playing...";
                 })
-                .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error);
-                    statusElement.textContent = "Narration failed. Please try again.";
+                .catch(async error => {
+                    console.error('Narration request failed:', error);
+                    try {
+                        const resp = await fetch('/narrate', { method: 'HEAD' });
+                        if (!resp.ok) console.error('Health check failed with status', resp.status);
+                    } catch (e) {
+                        console.error('Health check error', e);
+                    }
+                    statusElement.textContent = "Narration failed. Check API keys or rate limiting.";
                 });
         }
 
@@ -113,6 +124,23 @@
             } else {
                 startCamera();
             }
+        });
+
+        stopButton.addEventListener('click', () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+            if (audioPlayer) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }
+            if (streamRef) {
+                streamRef.getTracks().forEach(t => t.stop());
+                streamRef = null;
+            }
+            video.srcObject = null;
+            statusElement.textContent = "Camera and narration stopped.";
         });
 
     </script>

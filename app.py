@@ -1,6 +1,6 @@
 import base64
 import requests
-import xml.etree.ElementTree as ET
+import html
 from flask import Flask, request, jsonify, send_file
 import io
 import os
@@ -64,11 +64,12 @@ def narrate():
         return jsonify({"error": "Failed to get AI response"}), 500
 
     # 3. Call the Azure Text-to-Speech API
-    # Using the SSML format to specify a British male voice
+    # Escape narration text for SSML safety
+    safe_text = html.escape(narration_text)
     ssml = f"""
     <speak version='1.0' xml:lang='en-US'>
         <voice xml:lang='en-GB' xml:gender='Male' name='en-GB-RyanNeural'>
-            {ET.CDATA(narration_text)}
+            {safe_text}
         </voice>
     </speak>
     """
