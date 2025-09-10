@@ -38,17 +38,28 @@ def narrate():
     if not data or 'image' not in data:
         return jsonify({"error": "No image data received"}), 400
     history_text = data.get('history', '') or ''
+    persona = (data.get('persona') or 'attenborough').lower()
 
     # 1. Extract and decode the image
     image_data_url = data['image']
     header, encoded_data = image_data_url.split(',', 1)
     
     # 2. Call the AI model API (Gemini)
+    if persona == 'irwin':
+        persona_style = (
+            "You are Steve Irwin with enthusiastic Aussie energy. Use excited, friendly tone, "
+            "sprinkling light Aussie expressions (e.g., 'Crikey') tastefully."
+        )
+    else:
+        persona = 'attenborough'
+        persona_style = (
+            "You are Sir David Attenborough narrating a Planet Earth style scene with calm, poetic tone."
+        )
+
     prompt_text = (
-        "You are narrating a continuous wildlife documentary in the style of Sir David Attenborough. "
-        "Build upon the previous narration without repeating earlier lines. "
-        "If nothing substantially new is visible, say something brief acknowledging continuity. "
-        "Reply with 1-2 concise sentences.\n\n"
+        f"{persona_style} Build upon the previous narration without repeating earlier lines. "
+        "If nothing substantially new is visible, acknowledge continuity briefly. "
+        "Reply with 1–2 concise sentences.\n\n"
         f"Previous narration so far:\n{history_text}\n\n"
         "Now continue with the next line based on the current image."
     )
@@ -74,9 +85,11 @@ def narrate():
     # 3. Call the Azure Text-to-Speech API
     # Escape narration text for SSML safety
     safe_text = html.escape(narration_text)
+    voice_name = 'en-GB-RyanNeural' if persona == 'attenborough' else 'en-AU-WilliamNeural'
+    voice_lang = 'en-GB' if persona == 'attenborough' else 'en-AU'
     ssml = f"""
-    <speak version='1.0' xml:lang='en-US'>
-        <voice xml:lang='en-GB' xml:gender='Male' name='en-GB-RyanNeural'>
+    <speak version='1.0' xml:lang='{voice_lang}'>
+        <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
             {safe_text}
         </voice>
     </speak>

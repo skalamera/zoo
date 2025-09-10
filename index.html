@@ -42,6 +42,14 @@
 
 <body>
 
+    <div style="margin-bottom:12px; display:flex; gap:10px; align-items:center;">
+        <label for="persona-select">Narration persona:</label>
+        <select id="persona-select">
+            <option value="attenborough" selected>Planet Earth — Sir David Attenborough</option>
+            <option value="irwin">Steve Irwin</option>
+        </select>
+    </div>
+
     <video id="videoElement" width="640" height="480" autoplay></video>
     <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
     <h2 id="narrator-status">Waiting to start...</h2>
@@ -59,12 +67,14 @@
         const startButton = document.getElementById('camera-button');
         const audioPlayer = document.getElementById('audioPlayer');
         const stopButton = document.getElementById('stop-button');
+        const personaSelect = document.getElementById('persona-select');
 
         let intervalId = null;
         let streamRef = null;
         let isInFlight = false;
         let isSpeaking = false;
         let narrationHistory = '';
+        let selectedPersona = personaSelect.value;
 
         async function startCamera() {
             try {
@@ -87,7 +97,7 @@
             fetch('/narrate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: dataUrl, history: narrationHistory })
+                body: JSON.stringify({ image: dataUrl, history: narrationHistory, persona: selectedPersona })
             })
                 .then(async response => {
                     if (!response.ok) throw new Error('Network response was not ok');
@@ -149,6 +159,12 @@
             video.srcObject = null;
             narrationHistory = '';
             statusElement.textContent = "Camera and narration stopped.";
+        });
+
+        personaSelect.addEventListener('change', () => {
+            selectedPersona = personaSelect.value;
+            narrationHistory = '';
+            statusElement.textContent = "Persona changed. Context cleared.";
         });
 
         audioPlayer.addEventListener('ended', () => {
