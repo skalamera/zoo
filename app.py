@@ -62,7 +62,9 @@ def narrate():
     else:
         persona = 'attenborough'
         persona_style = (
-            "You are Sir David Attenborough narrating a Planet Earth style scene with calm, poetic tone."
+            "You are Sir David Attenborough narrating a Planet Earth style scene with calm, poetic gravitas. "
+            "Sprinkle in subtle, clever humor occasionally (no more than once every few lines), "
+            "such as a gentle aside about a visible mustache or attire, while remaining respectful."
         )
 
     prompt_text = (
@@ -108,10 +110,13 @@ def narrate():
         </speak>
         """
     else:
+        # Calm, measured prosody for Attenborough
         ssml = f"""
         <speak version='1.0' xml:lang='{voice_lang}'>
             <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
-                {safe_text}
+                <prosody rate='-5%' pitch='-2%'>
+                    {safe_text}
+                </prosody>
             </voice>
         </speak>
         """
