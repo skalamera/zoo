@@ -122,9 +122,10 @@
                     <option value="irwin">Steve Irwin</option>
                 </select>
             </div>
-            <div style="display:flex; gap:8px;">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button id="camera-button" class="btn btn-start">Start Camera & Narration</button>
                 <button id="stop-button" class="btn btn-stop">Stop Camera & Narration</button>
+                <button id="flip-button" class="btn" style="background: linear-gradient(135deg, #424242, #757575);">📱 Flip Camera</button>
             </div>
         </div>
 
@@ -146,6 +147,7 @@
         const startButton = document.getElementById('camera-button');
         const audioPlayer = document.getElementById('audioPlayer');
         const stopButton = document.getElementById('stop-button');
+        const flipButton = document.getElementById('flip-button');
         const personaSelect = document.getElementById('persona-select');
 
         let intervalId = null;
@@ -154,17 +156,45 @@
         let isSpeaking = false;
         let narrationHistory = '';
         let selectedPersona = localStorage.getItem('narration_persona') || 'attenborough';
+        let facingMode = 'user'; // 'user' for front camera, 'environment' for back camera
         personaSelect.value = selectedPersona;
 
         async function startCamera() {
             try {
-                streamRef = await navigator.mediaDevices.getUserMedia({ video: true });
+                streamRef = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode } 
+                });
                 video.srcObject = streamRef;
                 statusElement.textContent = "Camera active. Starting narration...";
                 startNarrationLoop();
             } catch (err) {
                 statusElement.textContent = `Error: Cannot access camera. Please check permissions.`;
                 console.error("Error accessing the camera: ", err);
+            }
+        }
+
+        async function flipCamera() {
+            if (!streamRef) {
+                statusElement.textContent = "Start camera first before flipping.";
+                return;
+            }
+            
+            // Stop current stream
+            streamRef.getTracks().forEach(track => track.stop());
+            
+            // Toggle facing mode
+            facingMode = facingMode === 'user' ? 'environment' : 'user';
+            
+            // Restart with new facing mode
+            try {
+                streamRef = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: facingMode } 
+                });
+                video.srcObject = streamRef;
+                statusElement.textContent = `Switched to ${facingMode === 'user' ? 'front' : 'back'} camera.`;
+            } catch (err) {
+                statusElement.textContent = `Error switching camera: ${err.message}`;
+                console.error("Error switching camera: ", err);
             }
         }
 
@@ -247,6 +277,8 @@
             narrationHistory = '';
             statusElement.textContent = "Persona changed. Context cleared.";
         });
+
+        flipButton.addEventListener('click', flipCamera);
 
         audioPlayer.addEventListener('ended', () => {
             isSpeaking = false;
