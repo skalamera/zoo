@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sir David's Narrator</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #video-container {
+            border: 2px solid #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        #narrator-status {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #555;
+        }
+
+        #camera-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <video id="videoElement" width="640" height="480" autoplay></video>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <h2 id="narrator-status">Waiting to start...</h2>
+    <button id="camera-button">Start Camera & Narration</button>
+    <audio id="audioPlayer" controls style="display: none;"></audio>
+
+    <script>
+        const video = document.getElementById('videoElement');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+        const statusElement = document.getElementById('narrator-status');
+        const startButton = document.getElementById('camera-button');
+        const audioPlayer = document.getElementById('audioPlayer');
+
+        let intervalId = null;
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                statusElement.textContent = "Camera active. Starting narration...";
+                startNarrationLoop();
+            } catch (err) {
+                statusElement.textContent = `Error: Cannot access camera. Please check permissions.`;
+                console.error("Error accessing the camera: ", err);
+            }
+        }
+
+        function captureAndSendFrame() {
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.8); // 0.8 quality for smaller size
+
+            fetch('/narrate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataUrl })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const audioUrl = URL.createObjectURL(blob);
+                    audioPlayer.src = audioUrl;
+                    audioPlayer.play();
+                    statusElement.textContent = "Narration playing...";
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                    statusElement.textContent = "Narration failed. Please try again.";
+                });
+        }
+
+        function startNarrationLoop() {
+            // Adjust the interval (in milliseconds) to control the frequency
+            // A 5000ms interval means a new image is sent every 5 seconds.
+            const captureInterval = 5000;
+            if (intervalId) clearInterval(intervalId); // Clear any existing interval
+            intervalId = setInterval(captureAndSendFrame, captureInterval);
+        }
+
+        startButton.addEventListener('click', () => {
+            if (video.srcObject) {
+                // If camera is already on, just restart the loop
+                startNarrationLoop();
+                statusElement.textContent = "Restarting narration...";
+            } else {
+                startCamera();
+            }
+        });
+
+    </script>
+</body>
+
+</html>
