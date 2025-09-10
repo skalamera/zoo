@@ -30,6 +30,14 @@ AZURE_SPEECH_URL = (
 def root():
     return send_file('index.html')
 
+@app.route('/favicon.ico')
+def favicon():
+    return ('', 204)
+
+@app.route('/narrate', methods=['HEAD'])
+def narrate_head():
+    return ('', 200)
+
 @app.route('/narrate', methods=['POST'])
 def narrate():
     # Validate configuration
@@ -89,11 +97,11 @@ def narrate():
     voice_name = 'en-GB-RyanNeural' if persona == 'attenborough' else 'en-AU-WilliamNeural'
     voice_lang = 'en-GB' if persona == 'attenborough' else 'en-AU'
     if persona == 'irwin':
-        # Add enthusiastic prosody for Steve Irwin
+        # Add enthusiastic prosody for Steve Irwin (use named volume level for compatibility)
         ssml = f"""
         <speak version='1.0' xml:lang='{voice_lang}'>
             <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
-                <prosody rate='+15%' pitch='+10%' volume='+2.5dB'>
+                <prosody rate='+15%' pitch='+10%' volume='loud'>
                     {safe_text}
                 </prosody>
             </voice>
