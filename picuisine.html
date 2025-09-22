@@ -291,7 +291,8 @@
       gap: 8px;
     }
 
-    .pause-camera, .close-camera {
+    .pause-camera,
+    .close-camera {
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 8px;
@@ -303,7 +304,8 @@
       transition: all 0.3s ease;
     }
 
-    .pause-camera:hover, .close-camera:hover {
+    .pause-camera:hover,
+    .close-camera:hover {
       background: rgba(255, 255, 255, 0.3);
     }
 
@@ -623,7 +625,7 @@
         this.currentStream = null;
         this.lastSuggestions = [];
         this.isPaused = false;
-        
+
         this.initializeEventListeners();
       }
 
@@ -650,7 +652,7 @@
 
           document.getElementById('cameraInterface').classList.add('active');
           document.body.style.overflow = 'hidden';
-          
+
           // Reset pause state
           this.isPaused = false;
           const pauseBtn = document.getElementById('pauseCamera');
@@ -677,7 +679,7 @@
       togglePause() {
         this.isPaused = !this.isPaused;
         const pauseBtn = document.getElementById('pauseCamera');
-        
+
         if (this.isPaused) {
           pauseBtn.textContent = '▶️ Start';
           pauseBtn.classList.add('paused');
@@ -732,7 +734,12 @@
 
           if (result.suggestions) {
             // Only update suggestions if they're different from the last ones
-            if (this.suggestionsChanged(result.suggestions)) {
+            const changed = this.suggestionsChanged(result.suggestions);
+            console.log('Suggestions changed:', changed);
+            console.log('New suggestions:', result.suggestions.map(s => s.title));
+            console.log('Last suggestions:', this.lastSuggestions.map(s => s.title));
+            
+            if (changed) {
               this.updateSuggestions(result.suggestions);
               this.lastSuggestions = result.suggestions;
             }
@@ -752,23 +759,64 @@
         }
       }
 
+      // Helper function to normalize text for comparison
+      normalizeText(text) {
+        return text.toLowerCase()
+          .trim()
+          .replace(/[^\w\s]/g, '') // Remove punctuation
+          .replace(/\s+/g, ' '); // Normalize whitespace
+      }
+
+      // Helper function to check if two recipe titles are similar (for slight AI variations)
+      titlesSimilar(title1, title2) {
+        const norm1 = this.normalizeText(title1);
+        const norm2 = this.normalizeText(title2);
+        
+        // Exact match
+        if (norm1 === norm2) return true;
+        
+        // Check if one contains the other (for variations like "Stir Fry" vs "Vegetable Stir Fry")
+        if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
+        
+        // Check for common recipe variations
+        const words1 = norm1.split(' ');
+        const words2 = norm2.split(' ');
+        const commonWords = words1.filter(word => words2.includes(word));
+        
+        // If they share most words, consider them similar
+        return commonWords.length >= Math.min(words1.length, words2.length) * 0.7;
+      }
+
       suggestionsChanged(newSuggestions) {
         // If no previous suggestions, it's a change
         if (this.lastSuggestions.length === 0) {
+          return newSuggestions.length > 0;
+        }
+        
+        // If new suggestions are empty but we had suggestions before, don't update (keep showing last ones)
+        if (newSuggestions.length === 0 && this.lastSuggestions.length > 0) {
+          return false;
+        }
+        
+        // If significantly different number of suggestions, it's a change
+        if (Math.abs(newSuggestions.length - this.lastSuggestions.length) > 1) {
           return true;
         }
         
-        // If different number of suggestions, it's a change
-        if (newSuggestions.length !== this.lastSuggestions.length) {
-          return true;
+        // For each new suggestion, see if we can find a similar one in the last suggestions
+        let matchCount = 0;
+        for (const newSugg of newSuggestions) {
+          for (const lastSugg of this.lastSuggestions) {
+            if (this.titlesSimilar(newSugg.title, lastSugg.title)) {
+              matchCount++;
+              break;
+            }
+          }
         }
         
-        // Compare suggestion titles to see if ingredients changed
-        const newTitles = newSuggestions.map(s => s.title.toLowerCase()).sort();
-        const lastTitles = this.lastSuggestions.map(s => s.title.toLowerCase()).sort();
-        
-        // If any titles are different, consider it a change
-        return !newTitles.every((title, index) => title === lastTitles[index]);
+        // If most suggestions are similar to previous ones, don't update
+        const similarityThreshold = Math.min(newSuggestions.length, this.lastSuggestions.length) * 0.8;
+        return matchCount < similarityThreshold;
       }
 
       updateCommentary(text) {
@@ -864,13 +912,13 @@
       backToCamera() {
         document.getElementById('recipeInterface').classList.remove('active');
         document.getElementById('cameraInterface').classList.add('active');
-        
+
         // Reset pause state
         this.isPaused = false;
         const pauseBtn = document.getElementById('pauseCamera');
         pauseBtn.textContent = '⏸️ Pause';
         pauseBtn.classList.remove('paused');
-        
+
         this.startAutoCapture();
       }
 

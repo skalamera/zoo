@@ -81,6 +81,9 @@ def analyze_food():
     food_analysis_prompt = (
         "You are a helpful food expert and cooking assistant. "
         "Analyze this image and identify any food items, ingredients, or cooking materials visible. "
+        "If you see the same ingredients as before, provide the EXACT same recipe suggestions to maintain consistency. "
+        "Only change suggestions if you detect new ingredients added or existing ingredients removed. "
+        "If no food items are visible, return empty suggestions array. "
         "Provide a brief, encouraging commentary about what you see (1-2 sentences), then suggest 2-4 specific dishes or recipes "
         "that could be made with the visible ingredients. "
         "Format your response as JSON with this structure: "
