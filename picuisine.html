@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Picuisine - AI Cooking Assistant</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&display=swap" rel="stylesheet">
+  <style>
+    @font-face {
+      font-family: 'GILGON';
+      src: url('/static/GILGONT_.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      --bg1: #1a2e1a;
+      --bg2: #2d4a2d;
+      --bg3: #1f3d1f;
+      --panel: rgba(139, 195, 74, .12);
+      --border: rgba(139, 195, 74, .3);
+      --accent: #8bc34a;
+      --lime-green: #cddc39;
+      --bright-lime: #9ccc65;
+      --dark-green: #388e3c;
+      --cream: #f1f8e9;
+      --light-lime: #f9fbe7;
+      --forest-green: #2e7d32;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg2);
+      color: var(--cream);
+      font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      padding: 60px 20px 20px 20px;
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(720px, 100%);
+      display: grid;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: linear-gradient(135deg, var(--panel), rgba(139, 195, 74, 0.15));
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      color: var(--cream);
+      text-decoration: none;
+      font-family: 'Jua', sans-serif;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(139, 195, 74, 0.2);
+    }
+
+    @media (max-width: 480px) {
+      .back-btn {
+        position: relative;
+        top: auto;
+        left: auto;
+        margin-bottom: 16px;
+        display: inline-block;
+      }
+
+      .wrap {
+        padding-top: 0;
+      }
+    }
+
+    .back-btn:hover {
+      background: linear-gradient(135deg, rgba(139, 195, 74, 0.2), rgba(139, 195, 74, 0.25));
+      border-color: var(--lime-green);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(139, 195, 74, 0.3);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 8px;
+    }
+
+    .app-logo {
+      width: 96px;
+      height: 96px;
+      background: white;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .app-logo img {
+      width: calc(100% - 32px);
+      height: calc(100% - 32px);
+      object-fit: contain;
+      margin: 2px;
+    }
+
+    h1 {
+      font-family: 'GILGON', 'Rye', cursive;
+      font-size: clamp(26px, 6vw, 48px);
+      margin: 0;
+      letter-spacing: 1px;
+      background: linear-gradient(45deg, var(--lime-green), var(--bright-lime));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 8px rgba(205, 220, 57, 0.3);
+    }
+
+    .subtitle {
+      margin: 0;
+      opacity: .9;
+      line-height: 1.5;
+      font-size: clamp(14px, 3.5vw, 18px);
+      margin-bottom: 16px;
+    }
+
+    .info-card {
+      background: var(--panel);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      margin: 12px 0;
+    }
+
+    .info-card.highlight {
+      background: linear-gradient(135deg, rgba(139, 195, 74, 0.2), rgba(205, 220, 57, 0.15));
+      border: 2px solid var(--lime-green);
+      box-shadow: 0 12px 28px rgba(139, 195, 74, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .info-title {
+      font-size: clamp(18px, 4.5vw, 22px);
+      font-family: 'GILGON', 'Rye', cursive;
+      margin-bottom: 12px;
+      color: var(--lime-green);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .info-content {
+      font-size: clamp(14px, 3.5vw, 16px);
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin: 16px 0;
+    }
+
+    @media (min-width: 680px) {
+      .features-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, var(--panel), rgba(139, 195, 74, 0.08));
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(139, 195, 74, 0.15);
+      transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(139, 195, 74, 0.25);
+      border-color: var(--lime-green);
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .feature-title {
+      font-family: 'GILGON', 'Rye', cursive;
+      font-size: 16px;
+      margin-bottom: 6px;
+      color: var(--accent);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .feature-desc {
+      font-size: 14px;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    .start-camera {
+      background: linear-gradient(135deg, var(--lime-green), var(--bright-lime));
+      color: var(--dark-green);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: clamp(16px, 4vw, 18px);
+      box-shadow: 0 10px 25px rgba(139, 195, 74, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      font-family: 'Jua', sans-serif;
+      margin-top: 20px;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .start-camera:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(139, 195, 74, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .start-camera:active {
+      transform: translateY(0);
+    }
+
+    .steps-list {
+      text-align: left;
+      margin: 16px 0;
+    }
+
+    .steps-list li {
+      margin: 8px 0;
+      padding-left: 8px;
+    }
+
+    .emoji {
+      font-size: 1.2em;
+      margin-right: 8px;
+    }
+
+    /* Camera Interface Styles */
+    .camera-interface {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    .camera-interface.active {
+      display: flex;
+    }
+
+    .camera-header {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-family: 'Jua', sans-serif;
+    }
+
+    .camera-title {
+      font-size: 18px;
+      color: var(--lime-green);
+    }
+
+    .close-camera {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+      color: white;
+      padding: 6px 12px;
+      cursor: pointer;
+      font-family: 'Jua', sans-serif;
+      font-size: 14px;
+    }
+
+    .close-camera:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .viewfinder-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #videoElement {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .capture-indicator {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255, 0, 0, 0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-family: 'Jua', sans-serif;
+      font-size: 12px;
+      display: none;
+    }
+
+    .capture-indicator.active {
+      display: block;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.5;
+      }
+    }
+
+    .suggestions-panel {
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      color: var(--cream);
+      padding: 16px;
+      max-height: 40vh;
+      overflow-y: auto;
+      border-top: 2px solid var(--border);
+    }
+
+    .suggestions-title {
+      font-family: 'GILGON', 'Rye', cursive;
+      color: var(--lime-green);
+      font-size: 18px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .commentary {
+      background: rgba(139, 195, 74, 0.1);
+      border-left: 3px solid var(--lime-green);
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-style: italic;
+      font-size: 14px;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .suggestions-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    @media (min-width: 480px) {
+      .suggestions-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .suggestion-item {
+      background: linear-gradient(135deg, var(--panel), rgba(139, 195, 74, 0.08));
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: left;
+    }
+
+    .suggestion-item:hover {
+      transform: translateY(-1px);
+      border-color: var(--lime-green);
+      box-shadow: 0 4px 12px rgba(139, 195, 74, 0.2);
+    }
+
+    .suggestion-title {
+      font-family: 'GILGON', 'Rye', cursive;
+      color: var(--accent);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+
+    .suggestion-desc {
+      font-size: 12px;
+      opacity: 0.9;
+      line-height: 1.3;
+    }
+
+    /* Recipe Display */
+    .recipe-interface {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg2);
+      color: var(--cream);
+      z-index: 1000;
+      flex-direction: column;
+    }
+
+    .recipe-interface.active {
+      display: flex;
+    }
+
+    .recipe-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .recipe-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .recipe-title {
+      font-family: 'GILGON', 'Rye', cursive;
+      color: var(--lime-green);
+      font-size: clamp(20px, 5vw, 28px);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .recipe-section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .recipe-section h3 {
+      color: var(--accent);
+      font-family: 'GILGON', 'Rye', cursive;
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+
+    .back-to-camera {
+      background: linear-gradient(135deg, var(--lime-green), var(--bright-lime));
+      color: var(--dark-green);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-family: 'Jua', sans-serif;
+      font-size: 14px;
+    }
+
+    .back-to-camera:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(139, 195, 74, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <a href="/" class="back-btn">← Back to Apps</a>
+
+  <div class="wrap">
+    <div class="app-header">
+      <div class="app-logo">
+        <img src="/static/picuisine_logo_transparent.svg" alt="Picuisine logo">
+      </div>
+    </div>
+
+    <p class="subtitle">Your AI-powered cooking companion that sees what you see</p>
+
+    <div class="info-card highlight">
+      <div class="info-title">🍳 What is Picuisine?</div>
+      <div class="info-content">
+        Picuisine is an innovative AI cooking assistant that uses your mobile camera to identify ingredients in
+        real-time.
+        Simply point your camera at any food items, and our AI will instantly suggest delicious recipes, cooking
+        techniques,
+        and creative dishes you can make with what you have on hand.
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-title">📱 How It Works</div>
+      <div class="info-content">
+        <ol class="steps-list">
+          <li><span class="emoji">📸</span><strong>Point & Scan:</strong> Open the app and point your camera at
+            ingredients, leftovers, or any food items</li>
+          <li><span class="emoji">🤖</span><strong>AI Recognition:</strong> Our advanced AI instantly identifies and
+            analyzes the ingredients in your viewfinder</li>
+          <li><span class="emoji">🍽️</span><strong>Get Suggestions:</strong> Receive personalized recipe
+            recommendations, cooking tips, and creative dish ideas</li>
+          <li><span class="emoji">👨‍🍳</span><strong>Start Cooking:</strong> Follow step-by-step instructions or adapt
+            recipes to your taste</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <div class="feature-title">Smart Recognition</div>
+        <div class="feature-desc">Identifies hundreds of ingredients, spices, and food items with high accuracy</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <div class="feature-title">Recipe Database</div>
+        <div class="feature-desc">Access thousands of recipes from simple snacks to gourmet meals</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Instant Results</div>
+        <div class="feature-desc">Get recipe suggestions in seconds, perfect for quick meal planning</div>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">Personalized</div>
+        <div class="feature-desc">Suggestions adapt to your dietary preferences and cooking skill level</div>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-title">🌟 Perfect For</div>
+      <div class="info-content">
+        • <strong>Busy home cooks</strong> who want to make the most of ingredients they have<br>
+        • <strong>Food enthusiasts</strong> looking to discover new recipes and cooking techniques<br>
+        • <strong>Students and professionals</strong> who need quick, practical meal solutions<br>
+        • <strong>Anyone</strong> who wants to reduce food waste and cook more creatively
+      </div>
+    </div>
+
+    <button class="start-camera" id="startCamera">
+      📸 Start Camera - Identify Ingredients
+    </button>
+  </div>
+
+  <!-- Camera Interface -->
+  <div class="camera-interface" id="cameraInterface">
+    <div class="camera-header">
+      <div class="camera-title">🔍 Ingredient Scanner</div>
+      <button class="close-camera" id="closeCamera">✕ Close</button>
+    </div>
+    <div class="viewfinder-container">
+      <video id="videoElement" autoplay playsinline></video>
+      <canvas id="captureCanvas" style="display: none;"></canvas>
+      <div class="capture-indicator" id="captureIndicator">📸 Analyzing...</div>
+    </div>
+    <div class="suggestions-panel" id="suggestionsPanel">
+      <div class="suggestions-title">🍽️ Recipe Suggestions</div>
+      <div class="commentary" id="commentary">Point your camera at ingredients to get started!</div>
+      <div class="suggestions-grid" id="suggestionsGrid"></div>
+    </div>
+  </div>
+
+  <!-- Recipe Interface -->
+  <div class="recipe-interface" id="recipeInterface">
+    <div class="recipe-header">
+      <div class="camera-title">👨‍🍳 Recipe Details</div>
+      <button class="back-to-camera" id="backToCamera">📸 Back to Camera</button>
+    </div>
+    <div class="recipe-content" id="recipeContent">
+      <div class="recipe-title" id="recipeTitle">Loading recipe...</div>
+      <div id="recipeDetails"></div>
+    </div>
+  </div>
+
+  <script>
+    class PicuisineCamera {
+      constructor() {
+        this.video = document.getElementById('videoElement');
+        this.canvas = document.getElementById('captureCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.isCapturing = false;
+        this.captureInterval = null;
+        this.currentStream = null;
+
+        this.initializeEventListeners();
+      }
+
+      initializeEventListeners() {
+        document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
+        document.getElementById('closeCamera').addEventListener('click', () => this.stopCamera());
+        document.getElementById('backToCamera').addEventListener('click', () => this.backToCamera());
+      }
+
+      async startCamera() {
+        try {
+          // Request rear camera on mobile devices
+          const constraints = {
+            video: {
+              facingMode: { ideal: 'environment' }, // Rear camera
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          };
+
+          this.currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+          this.video.srcObject = this.currentStream;
+
+          document.getElementById('cameraInterface').classList.add('active');
+          document.body.style.overflow = 'hidden';
+
+          // Start automatic capture after video loads
+          this.video.addEventListener('loadeddata', () => {
+            this.setupCanvas();
+            this.startAutoCapture();
+          });
+
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          alert('Unable to access camera. Please ensure you have granted camera permissions.');
+        }
+      }
+
+      setupCanvas() {
+        this.canvas.width = this.video.videoWidth;
+        this.canvas.height = this.video.videoHeight;
+      }
+
+      startAutoCapture() {
+        this.isCapturing = true;
+        this.captureInterval = setInterval(() => {
+          if (this.isCapturing) {
+            this.captureAndAnalyze();
+          }
+        }, 3000); // Capture every 3 seconds
+      }
+
+      stopAutoCapture() {
+        this.isCapturing = false;
+        if (this.captureInterval) {
+          clearInterval(this.captureInterval);
+          this.captureInterval = null;
+        }
+      }
+
+      async captureAndAnalyze() {
+        if (!this.video.videoWidth || !this.video.videoHeight) return;
+
+        // Show capture indicator
+        const indicator = document.getElementById('captureIndicator');
+        indicator.classList.add('active');
+
+        // Capture frame
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        const imageData = this.canvas.toDataURL('image/jpeg', 0.8);
+
+        // Send to AI for analysis
+        try {
+          const response = await fetch('/analyze_food', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: imageData,
+              type: 'food_analysis'
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.suggestions) {
+            this.updateSuggestions(result.suggestions);
+          }
+
+          if (result.commentary) {
+            this.updateCommentary(result.commentary);
+            this.playCommentary(result.audio);
+          }
+
+        } catch (error) {
+          console.error('Error analyzing image:', error);
+        } finally {
+          // Hide capture indicator
+          setTimeout(() => {
+            indicator.classList.remove('active');
+          }, 1000);
+        }
+      }
+
+      updateCommentary(text) {
+        const commentary = document.getElementById('commentary');
+        commentary.textContent = text;
+      }
+
+      updateSuggestions(suggestions) {
+        const grid = document.getElementById('suggestionsGrid');
+        grid.innerHTML = '';
+
+        suggestions.forEach(suggestion => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.innerHTML = `
+            <div class="suggestion-title">${suggestion.title}</div>
+            <div class="suggestion-desc">${suggestion.description}</div>
+          `;
+
+          item.addEventListener('click', () => {
+            this.selectSuggestion(suggestion);
+          });
+
+          grid.appendChild(item);
+        });
+      }
+
+      async selectSuggestion(suggestion) {
+        // Stop capturing
+        this.stopAutoCapture();
+
+        // Show recipe interface
+        document.getElementById('cameraInterface').classList.remove('active');
+        document.getElementById('recipeInterface').classList.add('active');
+
+        // Request detailed recipe
+        try {
+          const response = await fetch('/get_recipe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              suggestion: suggestion.title,
+              description: suggestion.description
+            })
+          });
+
+          const recipe = await response.json();
+          this.displayRecipe(recipe);
+
+        } catch (error) {
+          console.error('Error getting recipe:', error);
+          document.getElementById('recipeTitle').textContent = 'Error loading recipe';
+          document.getElementById('recipeDetails').innerHTML = '<p>Sorry, there was an error loading the recipe. Please try again.</p>';
+        }
+      }
+
+      displayRecipe(recipe) {
+        document.getElementById('recipeTitle').textContent = recipe.title;
+
+        const details = document.getElementById('recipeDetails');
+        details.innerHTML = `
+          <div class="recipe-section">
+            <h3>🥘 Ingredients</h3>
+            <ul>
+              ${recipe.ingredients.map(ingredient => `<li>${ingredient}</li>`).join('')}
+            </ul>
+          </div>
+          
+          <div class="recipe-section">
+            <h3>👨‍🍳 Instructions</h3>
+            <ol>
+              ${recipe.instructions.map(step => `<li>${step}</li>`).join('')}
+            </ol>
+          </div>
+          
+          ${recipe.tips ? `
+            <div class="recipe-section">
+              <h3>💡 Tips</h3>
+              <p>${recipe.tips}</p>
+            </div>
+          ` : ''}
+          
+          <div class="recipe-section">
+            <h3>⏱️ Cooking Time</h3>
+            <p><strong>Prep:</strong> ${recipe.prepTime || 'N/A'} | <strong>Cook:</strong> ${recipe.cookTime || 'N/A'}</p>
+          </div>
+        `;
+      }
+
+      playCommentary(audioBase64) {
+        if (audioBase64) {
+          const audio = new Audio('data:audio/mp3;base64,' + audioBase64);
+          audio.play().catch(e => console.log('Audio play failed:', e));
+        }
+      }
+
+      backToCamera() {
+        document.getElementById('recipeInterface').classList.remove('active');
+        document.getElementById('cameraInterface').classList.add('active');
+        this.startAutoCapture();
+      }
+
+      stopCamera() {
+        this.stopAutoCapture();
+
+        if (this.currentStream) {
+          this.currentStream.getTracks().forEach(track => track.stop());
+          this.currentStream = null;
+        }
+
+        document.getElementById('cameraInterface').classList.remove('active');
+        document.getElementById('recipeInterface').classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+
+    // Initialize the camera when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      new PicuisineCamera();
+    });
+  </script>
+</body>
+
+</html>

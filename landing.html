@@ -4,11 +4,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zoo Cam – Enter the Wild</title>
+    <title>App Launcher</title>
     <link href="https://fonts.googleapis.com/css2?family=Rye&family=Jua&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'GILGON';
+            src: url('/GILGONT_.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
-            --overlay: rgba(0, 0, 0, 0.35);
+            --bg1: #173d1a;
+            --bg2: #265d28;
+            --panel: rgba(255, 255, 255, .08);
+            --border: rgba(255, 255, 255, .2);
+            --accent: #ffcc80;
+            --sun: #ffd54f;
         }
 
         html,
@@ -18,76 +31,132 @@
         }
 
         body {
+            background: linear-gradient(180deg, var(--bg1), var(--bg2));
+            color: #fff;
             font-family: 'Jua', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-            background: var(--overlay) center/cover no-repeat fixed;
-            display: grid;
-            grid-template-rows: 1fr;
-        }
-
-        .bg {
-            position: fixed;
-            inset: 0;
-            background: url('/background_mobile.svg') center/cover no-repeat;
-        }
-
-        @media (min-width: 768px) {
-            .bg {
-                background-image: url('/background_desktop.svg');
-            }
-        }
-
-        .overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--overlay);
-        }
-
-        a.full {
-            position: relative;
-            z-index: 1;
             display: grid;
             place-items: center;
-            text-decoration: none;
-            color: #fff;
-            padding: 24px;
+            padding: 20px;
         }
 
-        .title {
-            font-family: 'Rye', cursive;
-            font-size: clamp(28px, 7vw, 64px);
-            text-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
-            letter-spacing: 1px;
+        .wrap {
+            width: min(600px, 100%);
+            display: grid;
+            gap: 32px;
             text-align: center;
         }
 
-        .cta {
-            margin-top: 16px;
-            font-size: clamp(16px, 3.5vw, 22px);
-            background: linear-gradient(135deg, #2e7d32, #c0ca33);
-            color: #102a09;
-            padding: 12px 18px;
-            border-radius: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.25);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
+        h1 {
+            font-family: 'GILGON', 'Rye', cursive;
+            font-size: clamp(32px, 8vw, 56px);
+            margin: 0;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .subtitle {
+            margin: 0;
+            opacity: .9;
+            line-height: 1.5;
+            font-size: clamp(16px, 4vw, 20px);
+            margin-bottom: 16px;
+        }
+
+        .apps {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .apps {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px 24px;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .app-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .app-card:active {
+            transform: translateY(-2px);
+        }
+
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .app-icon svg {
+            width: 60px;
+            height: 60px;
+        }
+
+        .app-title {
+            font-family: 'GILGON', 'Rye', cursive;
+            font-size: clamp(18px, 4.5vw, 24px);
+            margin: 0;
+            font-weight: normal;
+        }
+
+        .app-description {
+            font-size: clamp(12px, 3vw, 14px);
+            opacity: 0.7;
+            margin: 0;
+            line-height: 1.4;
         }
     </style>
-    <meta name="theme-color" content="#1b5e20">
+    <meta name="theme-color" content="#173d1a">
     <link rel="icon" href="data:,">
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Default persona
-            if (!localStorage.getItem('narration_persona')) {
-                localStorage.setItem('narration_persona', 'attenborough');
-            }
-        });
-    </script>
-    <meta name="description" content="Observe wild humans in their natural habitats. Enter the jungle cam experience.">
-    <div class="bg" aria-hidden="true"></div>
-    <div class="overlay" aria-hidden="true"></div>
+    <meta name="description" content="Choose your app - Wild Humans observation or Picuisine cooking assistant">
 </head>
 
 <body>
-    <a class="full" href="/choose" aria-label="Enter experience"></a>
+    <div class="wrap">
+
+        <div class="apps">
+            <a href="/choose" class="app-card" aria-label="Launch Wild Humans app">
+                <div class="app-icon">
+                    <img src="/static/wild_humans_logo_transparent.svg" alt="Wild Humans logo"
+                        style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <p class="app-description">Observe wild humans in their natural habitat</p>
+            </a>
+
+            <a href="/picuisine" class="app-card" aria-label="Launch Picuisine app">
+                <div class="app-icon">
+                    <img src="/static/picuisine_logo_transparent.svg" alt="Picuisine logo"
+                        style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+                <p class="app-description">AI-powered cooking assistant using your camera</p>
+            </a>
+        </div>
+    </div>
 </body>
 
 </html>
