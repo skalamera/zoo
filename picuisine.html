@@ -286,7 +286,12 @@
       color: var(--lime-green);
     }
 
-    .close-camera {
+    .camera-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .pause-camera, .close-camera {
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 8px;
@@ -295,10 +300,17 @@
       cursor: pointer;
       font-family: 'Jua', sans-serif;
       font-size: 14px;
+      transition: all 0.3s ease;
     }
 
-    .close-camera:hover {
+    .pause-camera:hover, .close-camera:hover {
       background: rgba(255, 255, 255, 0.3);
+    }
+
+    .pause-camera.paused {
+      background: var(--lime-green);
+      color: var(--dark-green);
+      border-color: var(--lime-green);
     }
 
     .viewfinder-container {
@@ -571,7 +583,10 @@
   <div class="camera-interface" id="cameraInterface">
     <div class="camera-header">
       <div class="camera-title">🔍 Ingredient Scanner</div>
-      <button class="close-camera" id="closeCamera">✕ Close</button>
+      <div class="camera-controls">
+        <button class="pause-camera" id="pauseCamera">⏸️ Pause</button>
+        <button class="close-camera" id="closeCamera">✕ Close</button>
+      </div>
     </div>
     <div class="viewfinder-container">
       <video id="videoElement" autoplay playsinline></video>
@@ -606,13 +621,16 @@
         this.isCapturing = false;
         this.captureInterval = null;
         this.currentStream = null;
-
+        this.lastSuggestions = [];
+        this.isPaused = false;
+        
         this.initializeEventListeners();
       }
 
       initializeEventListeners() {
         document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
         document.getElementById('closeCamera').addEventListener('click', () => this.stopCamera());
+        document.getElementById('pauseCamera').addEventListener('click', () => this.togglePause());
         document.getElementById('backToCamera').addEventListener('click', () => this.backToCamera());
       }
 
@@ -632,6 +650,12 @@
 
           document.getElementById('cameraInterface').classList.add('active');
           document.body.style.overflow = 'hidden';
+          
+          // Reset pause state
+          this.isPaused = false;
+          const pauseBtn = document.getElementById('pauseCamera');
+          pauseBtn.textContent = '⏸️ Pause';
+          pauseBtn.classList.remove('paused');
 
           // Start automatic capture after video loads
           this.video.addEventListener('loadeddata', () => {
@@ -650,10 +674,23 @@
         this.canvas.height = this.video.videoHeight;
       }
 
+      togglePause() {
+        this.isPaused = !this.isPaused;
+        const pauseBtn = document.getElementById('pauseCamera');
+        
+        if (this.isPaused) {
+          pauseBtn.textContent = '▶️ Start';
+          pauseBtn.classList.add('paused');
+        } else {
+          pauseBtn.textContent = '⏸️ Pause';
+          pauseBtn.classList.remove('paused');
+        }
+      }
+
       startAutoCapture() {
         this.isCapturing = true;
         this.captureInterval = setInterval(() => {
-          if (this.isCapturing) {
+          if (this.isCapturing && !this.isPaused) {
             this.captureAndAnalyze();
           }
         }, 3000); // Capture every 3 seconds
@@ -694,7 +731,11 @@
           const result = await response.json();
 
           if (result.suggestions) {
-            this.updateSuggestions(result.suggestions);
+            // Only update suggestions if they're different from the last ones
+            if (this.suggestionsChanged(result.suggestions)) {
+              this.updateSuggestions(result.suggestions);
+              this.lastSuggestions = result.suggestions;
+            }
           }
 
           if (result.commentary) {
@@ -709,6 +750,25 @@
             indicator.classList.remove('active');
           }, 1000);
         }
+      }
+
+      suggestionsChanged(newSuggestions) {
+        // If no previous suggestions, it's a change
+        if (this.lastSuggestions.length === 0) {
+          return true;
+        }
+        
+        // If different number of suggestions, it's a change
+        if (newSuggestions.length !== this.lastSuggestions.length) {
+          return true;
+        }
+        
+        // Compare suggestion titles to see if ingredients changed
+        const newTitles = newSuggestions.map(s => s.title.toLowerCase()).sort();
+        const lastTitles = this.lastSuggestions.map(s => s.title.toLowerCase()).sort();
+        
+        // If any titles are different, consider it a change
+        return !newTitles.every((title, index) => title === lastTitles[index]);
       }
 
       updateCommentary(text) {
@@ -804,6 +864,13 @@
       backToCamera() {
         document.getElementById('recipeInterface').classList.remove('active');
         document.getElementById('cameraInterface').classList.add('active');
+        
+        // Reset pause state
+        this.isPaused = false;
+        const pauseBtn = document.getElementById('pauseCamera');
+        pauseBtn.textContent = '⏸️ Pause';
+        pauseBtn.classList.remove('paused');
+        
         this.startAutoCapture();
       }
 
