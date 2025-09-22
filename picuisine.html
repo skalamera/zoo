@@ -398,13 +398,16 @@
       overflow-y: auto;
       border-top: 2px solid var(--border);
       flex-shrink: 0;
+      -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
     }
 
     @media (max-width: 768px) {
       .suggestions-panel {
         min-height: 45vh;
-        max-height: 50vh;
+        max-height: 45vh;
         padding: 12px;
+        overflow-y: scroll; /* Force scrolling on mobile */
+        -webkit-overflow-scrolling: touch;
       }
     }
 
@@ -431,6 +434,13 @@
     @media (min-width: 480px) {
       .suggestions-grid {
         grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .suggestions-grid {
+        gap: 12px;
+        padding-bottom: 20px; /* Extra space at bottom for scrolling */
       }
     }
 
@@ -819,6 +829,17 @@
         if (suggestions.length === 0) {
           grid.innerHTML = '<div style="text-align: center; opacity: 0.7; padding: 20px;">Record a video of ingredients to get recipe suggestions!</div>';
           return;
+        }
+
+        // Add scroll hint for mobile if there are many suggestions
+        if (suggestions.length > 2 && window.innerWidth <= 768) {
+          grid.style.paddingBottom = '60px';
+          setTimeout(() => {
+            const panel = document.getElementById('suggestionsPanel');
+            if (panel.scrollHeight > panel.clientHeight) {
+              grid.insertAdjacentHTML('afterend', '<div style="text-align: center; opacity: 0.5; font-size: 12px; padding: 8px;">↕️ Scroll to see all suggestions</div>');
+            }
+          }, 100);
         }
 
         suggestions.forEach(suggestion => {
