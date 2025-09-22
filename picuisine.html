@@ -699,7 +699,6 @@
 
           if (result.commentary) {
             this.updateCommentary(result.commentary);
-            this.playCommentary(result.audio);
           }
 
         } catch (error) {
@@ -801,12 +800,6 @@
         `;
       }
 
-      playCommentary(audioBase64) {
-        if (audioBase64) {
-          const audio = new Audio('data:audio/mp3;base64,' + audioBase64);
-          audio.play().catch(e => console.log('Audio play failed:', e));
-        }
-      }
 
       backToCamera() {
         document.getElementById('recipeInterface').classList.remove('active');

@@ -68,9 +68,6 @@ def analyze_food():
     if not GEMINI_API_KEY:
         print("ERROR: GEMINI_API_KEY not set")
         return jsonify({"error": "Server missing GEMINI_API_KEY configuration."}), 500
-    if not AZURE_SPEECH_KEY:
-        print("ERROR: AZURE_SPEECH_KEY not set")
-        return jsonify({"error": "Server missing AZURE_SPEECH_KEY configuration."}), 500
     
     data = request.json
     if not data or 'image' not in data:
@@ -82,13 +79,13 @@ def analyze_food():
     
     # AI prompt for food analysis
     food_analysis_prompt = (
-        "You are a witty British food expert with a sense of humor. "
+        "You are a helpful food expert and cooking assistant. "
         "Analyze this image and identify any food items, ingredients, or cooking materials visible. "
-        "Provide a brief, humorous commentary about what you see (1-2 sentences), then suggest 2-4 specific dishes or recipes "
+        "Provide a brief, encouraging commentary about what you see (1-2 sentences), then suggest 2-4 specific dishes or recipes "
         "that could be made with the visible ingredients. "
         "Format your response as JSON with this structure: "
         "{"
-        "  \"commentary\": \"Your witty observation about the food/ingredients\", "
+        "  \"commentary\": \"Your helpful observation about the food/ingredients\", "
         "  \"suggestions\": ["
         "    {\"title\": \"Recipe Name\", \"description\": \"Brief description of what can be made\"}, "
         "    {\"title\": \"Recipe Name 2\", \"description\": \"Another dish description\"}"
@@ -134,39 +131,9 @@ def analyze_food():
                 ]
             }
         
-        # Generate audio commentary
-        safe_text = html.escape(ai_json.get('commentary', ''))
-        voice_name = 'en-GB-RyanNeural'
-        voice_lang = 'en-GB'
-        
-        ssml = f"""
-        <speak version='1.0' xml:lang='{voice_lang}'>
-            <voice xml:lang='{voice_lang}' xml:gender='Male' name='{voice_name}'>
-                <prosody rate='-5%' pitch='-2%'>
-                    {safe_text}
-                </prosody>
-            </voice>
-        </speak>
-        """
-        
-        tts_headers = {
-            "Ocp-Apim-Subscription-Key": AZURE_SPEECH_KEY,
-            "Content-Type": "application/ssml+xml",
-            "X-Microsoft-OutputFormat": "audio-24khz-160kbitrate-mono-mp3",
-            "User-Agent": "PicuisineApp"
-        }
-
-        try:
-            tts_response = requests.post(AZURE_SPEECH_URL, headers=tts_headers, data=ssml.encode('utf-8'))
-            tts_response.raise_for_status()
-            audio_b64 = base64.b64encode(tts_response.content).decode('ascii')
-        except requests.exceptions.RequestException:
-            audio_b64 = None
-
         return jsonify({
             "commentary": ai_json.get('commentary', ''),
-            "suggestions": ai_json.get('suggestions', []),
-            "audio": audio_b64
+            "suggestions": ai_json.get('suggestions', [])
         })
         
     except requests.exceptions.RequestException as e:
