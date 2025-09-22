@@ -265,10 +265,17 @@
       background: #000;
       z-index: 1000;
       flex-direction: column;
+      overflow: hidden;
     }
 
     .camera-interface.active {
       display: flex;
+    }
+
+    @media (max-width: 768px) {
+      .camera-interface {
+        overflow-y: auto;
+      }
     }
 
     .camera-header {
@@ -317,8 +324,15 @@
     }
 
     @keyframes pulse-red {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
     }
 
     .viewfinder-container {
@@ -327,6 +341,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      max-height: 60vh; /* Limit height on mobile */
+    }
+
+    @media (max-width: 768px) {
+      .viewfinder-container {
+        max-height: 50vh; /* Even smaller on mobile to leave room for suggestions */
+      }
     }
 
     #videoElement {
@@ -369,9 +390,19 @@
       background: linear-gradient(135deg, var(--bg2), var(--bg1));
       color: var(--cream);
       padding: 16px;
-      max-height: 40vh;
+      min-height: 40vh;
+      max-height: 50vh;
       overflow-y: auto;
       border-top: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+      .suggestions-panel {
+        min-height: 45vh;
+        max-height: 50vh;
+        padding: 12px;
+      }
     }
 
     .suggestions-title {
@@ -380,6 +411,11 @@
       font-size: 18px;
       margin-bottom: 12px;
       text-align: center;
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      padding: 8px 0;
+      z-index: 10;
     }
 
 
@@ -621,7 +657,7 @@
         this.recordingInterval = null;
         this.currentStream = null;
         this.lastSuggestions = [];
-        
+
         this.initializeEventListeners();
       }
 
@@ -648,7 +684,7 @@
 
           document.getElementById('cameraInterface').classList.add('active');
           document.body.style.overflow = 'hidden';
-          
+
           // Reset recording state
           this.isRecording = false;
           this.recordingFrames = [];
@@ -686,7 +722,7 @@
         const recordBtn = document.getElementById('recordButton');
         recordBtn.textContent = '⏹️ Stop & Analyze';
         recordBtn.classList.add('recording');
-        
+
         // Capture frames every 500ms while recording
         this.recordingInterval = setInterval(() => {
           this.captureFrame();
@@ -698,24 +734,24 @@
         const recordBtn = document.getElementById('recordButton');
         recordBtn.textContent = '🔴 Start Recording';
         recordBtn.classList.remove('recording');
-        
+
         if (this.recordingInterval) {
           clearInterval(this.recordingInterval);
           this.recordingInterval = null;
         }
-        
+
         // Analyze the recorded frames
         this.analyzeRecordedFrames();
       }
 
       captureFrame() {
         if (!this.video.videoWidth || !this.video.videoHeight) return;
-        
+
         // Capture current frame
         this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
         const imageData = this.canvas.toDataURL('image/jpeg', 0.8);
         this.recordingFrames.push(imageData);
-        
+
         // Limit to last 10 frames to avoid memory issues
         if (this.recordingFrames.length > 10) {
           this.recordingFrames.shift();
@@ -732,11 +768,11 @@
         const indicator = document.getElementById('captureIndicator');
         indicator.classList.add('active');
         indicator.textContent = '🤖 Analyzing recorded frames...';
-        
+
         try {
           // Use the most recent frame for analysis
           const latestFrame = this.recordingFrames[this.recordingFrames.length - 1];
-          
+
           const response = await fetch('/analyze_food', {
             method: 'POST',
             headers: {
@@ -775,12 +811,12 @@
       updateSuggestions(suggestions) {
         const grid = document.getElementById('suggestionsGrid');
         grid.innerHTML = '';
-        
+
         if (suggestions.length === 0) {
           grid.innerHTML = '<div style="text-align: center; opacity: 0.7; padding: 20px;">Record a video of ingredients to get recipe suggestions!</div>';
           return;
         }
-        
+
         suggestions.forEach(suggestion => {
           const item = document.createElement('div');
           item.className = 'suggestion-item';
@@ -788,11 +824,11 @@
             <div class="suggestion-title">${suggestion.title}</div>
             <div class="suggestion-desc">${suggestion.description}</div>
           `;
-          
+
           item.addEventListener('click', () => {
             this.selectSuggestion(suggestion);
           });
-          
+
           grid.appendChild(item);
         });
       }
@@ -867,14 +903,14 @@
       backToCamera() {
         document.getElementById('recipeInterface').classList.remove('active');
         document.getElementById('cameraInterface').classList.add('active');
-        
+
         // Reset recording state
         this.isRecording = false;
         this.recordingFrames = [];
         const recordBtn = document.getElementById('recordButton');
         recordBtn.textContent = '🔴 Start Recording';
         recordBtn.classList.remove('recording');
-        
+
         if (this.recordingInterval) {
           clearInterval(this.recordingInterval);
           this.recordingInterval = null;
@@ -895,7 +931,7 @@
           this.currentStream.getTracks().forEach(track => track.stop());
           this.currentStream = null;
         }
-        
+
         document.getElementById('cameraInterface').classList.remove('active');
         document.getElementById('recipeInterface').classList.remove('active');
         document.body.style.overflow = '';
