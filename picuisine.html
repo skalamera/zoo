@@ -226,6 +226,7 @@
       cursor: pointer;
       font-family: 'Jua', sans-serif;
       margin-top: 20px;
+      margin-bottom: 40px;
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
     }
@@ -341,12 +342,14 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      max-height: 60vh; /* Limit height on mobile */
+      max-height: 60vh;
+      /* Limit height on mobile */
     }
 
     @media (max-width: 768px) {
       .viewfinder-container {
-        max-height: 50vh; /* Even smaller on mobile to leave room for suggestions */
+        max-height: 50vh;
+        /* Even smaller on mobile to leave room for suggestions */
       }
     }
 
@@ -546,6 +549,10 @@
 
     <p class="subtitle">Your AI-powered cooking companion that sees what you see</p>
 
+    <button class="start-camera" onclick="document.getElementById('startCamera').click()">
+      📸 Start Camera - Identify Ingredients
+    </button>
+
     <div class="info-card highlight">
       <div class="info-title">🍳 What is Picuisine?</div>
       <div class="info-content">
@@ -561,14 +568,11 @@
       <div class="info-title">📱 How It Works</div>
       <div class="info-content">
         <ol class="steps-list">
-          <li><span class="emoji">📸</span><strong>Point & Scan:</strong> Open the app and point your camera at
-            ingredients, leftovers, or any food items</li>
-          <li><span class="emoji">🤖</span><strong>AI Recognition:</strong> Our advanced AI instantly identifies and
-            analyzes the ingredients in your viewfinder</li>
-          <li><span class="emoji">🍽️</span><strong>Get Suggestions:</strong> Receive personalized recipe
-            recommendations, cooking tips, and creative dish ideas</li>
-          <li><span class="emoji">👨‍🍳</span><strong>Start Cooking:</strong> Follow step-by-step instructions or adapt
-            recipes to your taste</li>
+          <li><span class="emoji">📸</span><strong>Start Camera:</strong> Open the camera viewfinder and point it at your ingredients</li>
+          <li><span class="emoji">🔴</span><strong>Record Video:</strong> Tap "Start Recording" and move your camera around the food items for a few seconds</li>
+          <li><span class="emoji">⏹️</span><strong>Stop & Analyze:</strong> Tap "Stop & Analyze" to send your video to our AI for ingredient identification</li>
+          <li><span class="emoji">🍽️</span><strong>Get Suggestions:</strong> View recipe recommendations based on your ingredients</li>
+          <li><span class="emoji">👨‍🍳</span><strong>Cook:</strong> Tap any suggestion for detailed step-by-step cooking instructions</li>
         </ol>
       </div>
     </div>
@@ -592,11 +596,6 @@
         <div class="feature-desc">Get recipe suggestions in seconds, perfect for quick meal planning</div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <div class="feature-title">Personalized</div>
-        <div class="feature-desc">Suggestions adapt to your dietary preferences and cooking skill level</div>
-      </div>
     </div>
 
     <div class="info-card">
