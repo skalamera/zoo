@@ -84,11 +84,9 @@ def analyze_food():
         "If you see the same ingredients as before, provide the EXACT same recipe suggestions to maintain consistency. "
         "Only change suggestions if you detect new ingredients added or existing ingredients removed. "
         "If no food items are visible, return empty suggestions array. "
-        "Provide a brief, encouraging commentary about what you see (1-2 sentences), then suggest 2-4 specific dishes or recipes "
-        "that could be made with the visible ingredients. "
+        "Suggest 2-4 specific dishes or recipes that could be made with the visible ingredients. "
         "Format your response as JSON with this structure: "
         "{"
-        "  \"commentary\": \"Your helpful observation about the food/ingredients\", "
         "  \"suggestions\": ["
         "    {\"title\": \"Recipe Name\", \"description\": \"Brief description of what can be made\"}, "
         "    {\"title\": \"Recipe Name 2\", \"description\": \"Another dish description\"}"
@@ -128,14 +126,12 @@ def analyze_food():
         except (json.JSONDecodeError, ValueError):
             # Fallback if JSON parsing fails
             ai_json = {
-                "commentary": ai_text[:200] + "..." if len(ai_text) > 200 else ai_text,
                 "suggestions": [
                     {"title": "Creative Dish", "description": "Try something creative with your ingredients!"}
                 ]
             }
         
         return jsonify({
-            "commentary": ai_json.get('commentary', ''),
             "suggestions": ai_json.get('suggestions', [])
         })
         

@@ -376,15 +376,6 @@
       text-align: center;
     }
 
-    .commentary {
-      background: rgba(139, 195, 74, 0.1);
-      border-left: 3px solid var(--lime-green);
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      font-style: italic;
-      font-size: 14px;
-      border-radius: 0 8px 8px 0;
-    }
 
     .suggestions-grid {
       display: grid;
@@ -597,7 +588,6 @@
     </div>
     <div class="suggestions-panel" id="suggestionsPanel">
       <div class="suggestions-title">🍽️ Recipe Suggestions</div>
-      <div class="commentary" id="commentary">Point your camera at ingredients to get started!</div>
       <div class="suggestions-grid" id="suggestionsGrid"></div>
     </div>
   </div>
@@ -734,19 +724,10 @@
 
           if (result.suggestions) {
             // Only update suggestions if they're different from the last ones
-            const changed = this.suggestionsChanged(result.suggestions);
-            console.log('Suggestions changed:', changed);
-            console.log('New suggestions:', result.suggestions.map(s => s.title));
-            console.log('Last suggestions:', this.lastSuggestions.map(s => s.title));
-            
-            if (changed) {
+            if (this.suggestionsChanged(result.suggestions)) {
               this.updateSuggestions(result.suggestions);
               this.lastSuggestions = result.suggestions;
             }
-          }
-
-          if (result.commentary) {
-            this.updateCommentary(result.commentary);
           }
 
         } catch (error) {
@@ -771,18 +752,18 @@
       titlesSimilar(title1, title2) {
         const norm1 = this.normalizeText(title1);
         const norm2 = this.normalizeText(title2);
-        
+
         // Exact match
         if (norm1 === norm2) return true;
-        
+
         // Check if one contains the other (for variations like "Stir Fry" vs "Vegetable Stir Fry")
         if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
-        
+
         // Check for common recipe variations
         const words1 = norm1.split(' ');
         const words2 = norm2.split(' ');
         const commonWords = words1.filter(word => words2.includes(word));
-        
+
         // If they share most words, consider them similar
         return commonWords.length >= Math.min(words1.length, words2.length) * 0.7;
       }
@@ -792,17 +773,17 @@
         if (this.lastSuggestions.length === 0) {
           return newSuggestions.length > 0;
         }
-        
+
         // If new suggestions are empty but we had suggestions before, don't update (keep showing last ones)
         if (newSuggestions.length === 0 && this.lastSuggestions.length > 0) {
           return false;
         }
-        
+
         // If significantly different number of suggestions, it's a change
         if (Math.abs(newSuggestions.length - this.lastSuggestions.length) > 1) {
           return true;
         }
-        
+
         // For each new suggestion, see if we can find a similar one in the last suggestions
         let matchCount = 0;
         for (const newSugg of newSuggestions) {
@@ -813,16 +794,13 @@
             }
           }
         }
-        
+
         // If most suggestions are similar to previous ones, don't update
-        const similarityThreshold = Math.min(newSuggestions.length, this.lastSuggestions.length) * 0.8;
+        // Use a more aggressive threshold to prevent frequent updates
+        const similarityThreshold = Math.min(newSuggestions.length, this.lastSuggestions.length) * 0.6;
         return matchCount < similarityThreshold;
       }
 
-      updateCommentary(text) {
-        const commentary = document.getElementById('commentary');
-        commentary.textContent = text;
-      }
 
       updateSuggestions(suggestions) {
         const grid = document.getElementById('suggestionsGrid');
