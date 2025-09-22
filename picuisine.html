@@ -291,7 +291,7 @@
       gap: 8px;
     }
 
-    .pause-camera,
+    .record-button,
     .close-camera {
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -304,15 +304,21 @@
       transition: all 0.3s ease;
     }
 
-    .pause-camera:hover,
+    .record-button:hover,
     .close-camera:hover {
       background: rgba(255, 255, 255, 0.3);
     }
 
-    .pause-camera.paused {
-      background: var(--lime-green);
-      color: var(--dark-green);
-      border-color: var(--lime-green);
+    .record-button.recording {
+      background: #ff4444;
+      color: white;
+      border-color: #ff4444;
+      animation: pulse-red 1.5s infinite;
+    }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
     }
 
     .viewfinder-container {
@@ -577,7 +583,7 @@
     <div class="camera-header">
       <div class="camera-title">🔍 Ingredient Scanner</div>
       <div class="camera-controls">
-        <button class="pause-camera" id="pauseCamera">⏸️ Pause</button>
+        <button class="record-button" id="recordButton">🔴 Start Recording</button>
         <button class="close-camera" id="closeCamera">✕ Close</button>
       </div>
     </div>
@@ -610,19 +616,19 @@
         this.video = document.getElementById('videoElement');
         this.canvas = document.getElementById('captureCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.isCapturing = false;
-        this.captureInterval = null;
+        this.isRecording = false;
+        this.recordingFrames = [];
+        this.recordingInterval = null;
         this.currentStream = null;
         this.lastSuggestions = [];
-        this.isPaused = false;
-
+        
         this.initializeEventListeners();
       }
 
       initializeEventListeners() {
         document.getElementById('startCamera').addEventListener('click', () => this.startCamera());
         document.getElementById('closeCamera').addEventListener('click', () => this.stopCamera());
-        document.getElementById('pauseCamera').addEventListener('click', () => this.togglePause());
+        document.getElementById('recordButton').addEventListener('click', () => this.toggleRecording());
         document.getElementById('backToCamera').addEventListener('click', () => this.backToCamera());
       }
 
@@ -642,17 +648,17 @@
 
           document.getElementById('cameraInterface').classList.add('active');
           document.body.style.overflow = 'hidden';
+          
+          // Reset recording state
+          this.isRecording = false;
+          this.recordingFrames = [];
+          const recordBtn = document.getElementById('recordButton');
+          recordBtn.textContent = '🔴 Start Recording';
+          recordBtn.classList.remove('recording');
 
-          // Reset pause state
-          this.isPaused = false;
-          const pauseBtn = document.getElementById('pauseCamera');
-          pauseBtn.textContent = '⏸️ Pause';
-          pauseBtn.classList.remove('paused');
-
-          // Start automatic capture after video loads
+          // Setup canvas after video loads
           this.video.addEventListener('loadeddata', () => {
             this.setupCanvas();
-            this.startAutoCapture();
           });
 
         } catch (error) {
@@ -666,146 +672,115 @@
         this.canvas.height = this.video.videoHeight;
       }
 
-      togglePause() {
-        this.isPaused = !this.isPaused;
-        const pauseBtn = document.getElementById('pauseCamera');
-
-        if (this.isPaused) {
-          pauseBtn.textContent = '▶️ Start';
-          pauseBtn.classList.add('paused');
+      toggleRecording() {
+        if (!this.isRecording) {
+          this.startRecording();
         } else {
-          pauseBtn.textContent = '⏸️ Pause';
-          pauseBtn.classList.remove('paused');
+          this.stopRecording();
         }
       }
 
-      startAutoCapture() {
-        this.isCapturing = true;
-        this.captureInterval = setInterval(() => {
-          if (this.isCapturing && !this.isPaused) {
-            this.captureAndAnalyze();
-          }
-        }, 3000); // Capture every 3 seconds
+      startRecording() {
+        this.isRecording = true;
+        this.recordingFrames = [];
+        const recordBtn = document.getElementById('recordButton');
+        recordBtn.textContent = '⏹️ Stop & Analyze';
+        recordBtn.classList.add('recording');
+        
+        // Capture frames every 500ms while recording
+        this.recordingInterval = setInterval(() => {
+          this.captureFrame();
+        }, 500);
       }
 
-      stopAutoCapture() {
-        this.isCapturing = false;
-        if (this.captureInterval) {
-          clearInterval(this.captureInterval);
-          this.captureInterval = null;
+      stopRecording() {
+        this.isRecording = false;
+        const recordBtn = document.getElementById('recordButton');
+        recordBtn.textContent = '🔴 Start Recording';
+        recordBtn.classList.remove('recording');
+        
+        if (this.recordingInterval) {
+          clearInterval(this.recordingInterval);
+          this.recordingInterval = null;
         }
+        
+        // Analyze the recorded frames
+        this.analyzeRecordedFrames();
       }
 
-      async captureAndAnalyze() {
+      captureFrame() {
         if (!this.video.videoWidth || !this.video.videoHeight) return;
+        
+        // Capture current frame
+        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+        const imageData = this.canvas.toDataURL('image/jpeg', 0.8);
+        this.recordingFrames.push(imageData);
+        
+        // Limit to last 10 frames to avoid memory issues
+        if (this.recordingFrames.length > 10) {
+          this.recordingFrames.shift();
+        }
+      }
+
+      async analyzeRecordedFrames() {
+        if (this.recordingFrames.length === 0) {
+          alert('No frames recorded. Please record some video first.');
+          return;
+        }
 
         // Show capture indicator
         const indicator = document.getElementById('captureIndicator');
         indicator.classList.add('active');
-
-        // Capture frame
-        this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
-        const imageData = this.canvas.toDataURL('image/jpeg', 0.8);
-
-        // Send to AI for analysis
+        indicator.textContent = '🤖 Analyzing recorded frames...';
+        
         try {
+          // Use the most recent frame for analysis
+          const latestFrame = this.recordingFrames[this.recordingFrames.length - 1];
+          
           const response = await fetch('/analyze_food', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              image: imageData,
+              image: latestFrame,
               type: 'food_analysis'
             })
           });
 
           const result = await response.json();
 
-          if (result.suggestions) {
-            // Only update suggestions if they're different from the last ones
-            if (this.suggestionsChanged(result.suggestions)) {
-              this.updateSuggestions(result.suggestions);
-              this.lastSuggestions = result.suggestions;
-            }
+          if (result.suggestions && result.suggestions.length > 0) {
+            this.updateSuggestions(result.suggestions);
+            this.lastSuggestions = result.suggestions;
+          } else {
+            // Clear suggestions if no food found
+            this.updateSuggestions([]);
           }
 
         } catch (error) {
-          console.error('Error analyzing image:', error);
+          console.error('Error analyzing recorded frames:', error);
+          alert('Error analyzing video. Please try recording again.');
         } finally {
           // Hide capture indicator
           setTimeout(() => {
             indicator.classList.remove('active');
+            indicator.textContent = '📸 Analyzing...';
           }, 1000);
         }
       }
 
-      // Helper function to normalize text for comparison
-      normalizeText(text) {
-        return text.toLowerCase()
-          .trim()
-          .replace(/[^\w\s]/g, '') // Remove punctuation
-          .replace(/\s+/g, ' '); // Normalize whitespace
-      }
-
-      // Helper function to check if two recipe titles are similar (for slight AI variations)
-      titlesSimilar(title1, title2) {
-        const norm1 = this.normalizeText(title1);
-        const norm2 = this.normalizeText(title2);
-
-        // Exact match
-        if (norm1 === norm2) return true;
-
-        // Check if one contains the other (for variations like "Stir Fry" vs "Vegetable Stir Fry")
-        if (norm1.includes(norm2) || norm2.includes(norm1)) return true;
-
-        // Check for common recipe variations
-        const words1 = norm1.split(' ');
-        const words2 = norm2.split(' ');
-        const commonWords = words1.filter(word => words2.includes(word));
-
-        // If they share most words, consider them similar
-        return commonWords.length >= Math.min(words1.length, words2.length) * 0.7;
-      }
-
-      suggestionsChanged(newSuggestions) {
-        // If no previous suggestions, it's a change
-        if (this.lastSuggestions.length === 0) {
-          return newSuggestions.length > 0;
-        }
-
-        // If new suggestions are empty but we had suggestions before, don't update (keep showing last ones)
-        if (newSuggestions.length === 0 && this.lastSuggestions.length > 0) {
-          return false;
-        }
-
-        // If significantly different number of suggestions, it's a change
-        if (Math.abs(newSuggestions.length - this.lastSuggestions.length) > 1) {
-          return true;
-        }
-
-        // For each new suggestion, see if we can find a similar one in the last suggestions
-        let matchCount = 0;
-        for (const newSugg of newSuggestions) {
-          for (const lastSugg of this.lastSuggestions) {
-            if (this.titlesSimilar(newSugg.title, lastSugg.title)) {
-              matchCount++;
-              break;
-            }
-          }
-        }
-
-        // If most suggestions are similar to previous ones, don't update
-        // Use a more aggressive threshold to prevent frequent updates
-        const similarityThreshold = Math.min(newSuggestions.length, this.lastSuggestions.length) * 0.6;
-        return matchCount < similarityThreshold;
-      }
 
 
       updateSuggestions(suggestions) {
         const grid = document.getElementById('suggestionsGrid');
         grid.innerHTML = '';
-
+        
+        if (suggestions.length === 0) {
+          grid.innerHTML = '<div style="text-align: center; opacity: 0.7; padding: 20px;">Record a video of ingredients to get recipe suggestions!</div>';
+          return;
+        }
+        
         suggestions.forEach(suggestion => {
           const item = document.createElement('div');
           item.className = 'suggestion-item';
@@ -813,18 +788,20 @@
             <div class="suggestion-title">${suggestion.title}</div>
             <div class="suggestion-desc">${suggestion.description}</div>
           `;
-
+          
           item.addEventListener('click', () => {
             this.selectSuggestion(suggestion);
           });
-
+          
           grid.appendChild(item);
         });
       }
 
       async selectSuggestion(suggestion) {
-        // Stop capturing
-        this.stopAutoCapture();
+        // Stop recording if active
+        if (this.isRecording) {
+          this.stopRecording();
+        }
 
         // Show recipe interface
         document.getElementById('cameraInterface').classList.remove('active');
@@ -890,24 +867,35 @@
       backToCamera() {
         document.getElementById('recipeInterface').classList.remove('active');
         document.getElementById('cameraInterface').classList.add('active');
-
-        // Reset pause state
-        this.isPaused = false;
-        const pauseBtn = document.getElementById('pauseCamera');
-        pauseBtn.textContent = '⏸️ Pause';
-        pauseBtn.classList.remove('paused');
-
-        this.startAutoCapture();
+        
+        // Reset recording state
+        this.isRecording = false;
+        this.recordingFrames = [];
+        const recordBtn = document.getElementById('recordButton');
+        recordBtn.textContent = '🔴 Start Recording';
+        recordBtn.classList.remove('recording');
+        
+        if (this.recordingInterval) {
+          clearInterval(this.recordingInterval);
+          this.recordingInterval = null;
+        }
       }
 
       stopCamera() {
-        this.stopAutoCapture();
+        // Stop recording if active
+        if (this.isRecording) {
+          this.isRecording = false;
+          if (this.recordingInterval) {
+            clearInterval(this.recordingInterval);
+            this.recordingInterval = null;
+          }
+        }
 
         if (this.currentStream) {
           this.currentStream.getTracks().forEach(track => track.stop());
           this.currentStream = null;
         }
-
+        
         document.getElementById('cameraInterface').classList.remove('active');
         document.getElementById('recipeInterface').classList.remove('active');
         document.body.style.overflow = '';
